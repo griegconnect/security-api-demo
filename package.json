@@ -1,0 +1,26 @@
+{
+  "name": "orbita-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "application": "ts-node src/application.ts",
+    "passing": "ts-node src/passing.ts",
+    "generate-client": "npx @openapitools/openapi-generator-cli generate -i ./openapi.json -g typescript-axios -o ./src/client"
+  },
+  "author": "Kristoffer Klevenberg <kristoffer@griegconnect.com>",
+  "devDependencies": {
+    "@types/google-libphonenumber": "^7.4.30",
+    "@types/luxon": "^3.4.2",
+    "@types/prompts": "^2.4.9",
+    "@types/uuid": "^9.0.8",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "google-libphonenumber": "^3.2.34",
+    "luxon": "^3.4.4",
+    "prompts": "^2.4.2",
+    "uuid": "^9.0.1"
+  }
+}

@@ -1,0 +1,1262 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Security",
+    "version": "2.0",
+    "contact": {
+      "name": "Grieg Connect",
+      "url": "https://griegconnect.com"
+    },
+    "description": "Grieg Connects Security API"
+  },
+  "servers": [
+    {
+      "description": "Local",
+      "url": "http://localhost:8080/api"
+    },
+    {
+      "description": "Test",
+      "url": "https://security.test.grieg.io/api"
+    },
+    {
+      "description": "Prod",
+      "url": "https://security.grieg.io/api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Port"
+    },
+    {
+      "name": "Application"
+    },
+    {
+      "name": "Permits"
+    },
+    {
+      "name": "Passings"
+    },
+    {
+      "name": "Identity"
+    },
+    {
+      "name": "Vehicle"
+    }
+  ],
+  "paths": {
+    "/ports/{portId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "get": {
+        "operationId": "getPortDetails",
+        "description": "Show port details",
+        "tags": ["Port"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Show details for current port. The details contains the following: Port id, name, reference, areas, checkpoints, purposes, port companies, security check results, security confirmations, integrations. All of this should be used to create a visitor application",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Port not found"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/files": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "post": {
+        "operationId": "uploadFile",
+        "description": "Upload a document with the port as owner. The document will be available for all port administrators",
+        "tags": ["Port"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Upload a document with the port as owner. The document will be available for all port administrators",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/FileUploadRequest"
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/identities/mobile/login": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "post": {
+        "operationId": "issueMobileLoginRequest",
+        "description": "Issue a request to verify a port identity with a mobile number",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/MobileLoginRequest"
+        },
+        "tags": ["Identity"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Issue a request to verify a port identity with a mobile number",
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/identities/mobile/verify": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "post": {
+        "operationId": "verifyMobile",
+        "description": "Verify user identity with PIN code sent over SMS",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/VerifyMobileRequest"
+        },
+        "tags": ["Identity"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Verify user identity with PIN code sent over SMS",
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad Request: User could not be verified"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/vehicles/verify": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        },
+        {
+          "name": "licencePlate",
+          "in": "query",
+          "schema": {
+            "type": "string"
+          },
+          "description": "Licence plate of the vehicle"
+        },
+        {
+          "name": "facility",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Facility id / area id"
+        },
+        {
+          "name": "validTime",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": "Timestamp to check if the vehicle is valid for. If null, results are given as if validTime = now"
+        }
+      ],
+      "get": {
+        "operationId": "verifyVehicle",
+        "description": "Returns whether the vehicle is approved for access to the port",
+        "tags": ["Vehicle"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Returns whether the vehicle is approved for access to the port",
+        "responses": {
+          "200": {
+            "description": "Response for vehicle access request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyVehicleResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Vehicle not found"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/permits2/max-duration": {
+      "parameters": [
+        {
+          "name": "startTime",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": "Start time for the permit"
+        },
+        {
+          "name": "target",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Contract id, used if the visiting target is a company with a contract with the port"
+        },
+        {
+          "name": "purpose",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Purpose id for the selected purpose of the visit"
+        },
+        {
+          "name": "facility",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "facility id / area id"
+        },
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "get": {
+        "operationId": "getMaxDuration",
+        "description": "Returns maximum duration and preferred duration for the permit, given start time, prupose, visiting target and facility",
+        "tags": ["Permits"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Returns maximum duration and preferred duration for the permit, given start time, prupose, visiting target and facility",
+        "responses": {
+          "200": {
+            "description": "Maximum duration and preferred duration for the permit, given start time, prupose, visiting target and facility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "items": {
+                    "$ref": "#/components/schemas/MaxDurationResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ports/{portId}/passings": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "get": {
+        "operationId": "getPassings",
+        "description": "Show latest passings",
+        "tags": ["Passings"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Show latest passings",
+        "responses": {
+          "200": {
+            "description": "Passing created response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PassingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/integrations/orbita/event": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "post": {
+        "operationId": "createPassing",
+        "description": "Create a new passing in Orbita",
+        "tags": ["Passings"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Create a new passing in Orbita",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/OrbitaPassingRequest"
+        },
+        "responses": {
+          "200": {
+            "description": "Passing created response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrbitaPassingResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/applications2": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        }
+      ],
+      "post": {
+        "operationId": "createApplication",
+        "description": "Create a new application for a user",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/NewVisitorApplicationRequest"
+        },
+        "tags": ["Application"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Create a new application for a user",
+        "responses": {
+          "200": {
+            "description": "Application awaiting approval was created for the user, and the id for the application is returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationId"
+                }
+              }
+            }
+          },
+
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/ports/{portId}/applications2/{id}/status": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/portId"
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Id of the application",
+          "required": true
+        }
+      ],
+      "get": {
+        "description": "Get application status",
+        "operationId": "getApplicationStatus",
+        "tags": ["Application"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Get the status of an application",
+        "responses": {
+          "200": {
+            "description": "Status of the application",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["submitted", "approved", "rejected"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Passing": {
+        "type": "object",
+        "properties": {
+          "passing": {
+            "$ref": "#/components/schemas/PassingDetails"
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "company": {
+                  "type": "string"
+                },
+                "person": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PassingDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pin": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checkpoint": {
+            "$ref": "#/components/schemas/CheckpointLinkResponse"
+          },
+          "facilitiy:": {
+            "$ref": "#/components/schemas/AreaLinkResponse"
+          }
+        }
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "mobile": {
+            "type": "string"
+          },
+          "mobile_verified": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PortDetails": {
+        "type": "object",
+        "properties": {
+          "port": {
+            "$ref": "#/components/schemas/PortResponse"
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaResponse"
+            }
+          },
+          "checkpoint": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckpointResponse"
+            }
+          },
+          "purpose": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurposeResponse"
+            }
+          },
+          "port_companies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortCompanyResponse"
+            }
+          },
+          "securityCheckResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityCheckResultsResponse"
+            }
+          },
+          "securityConfirmations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityConfirmationsResponse"
+            }
+          },
+          "integrationsResponse": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationsResponse"
+            }
+          }
+        }
+      },
+      "ApplicationId": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PortResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "ref", "name"]
+      },
+      "PurposeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "maxDuration": {
+            "type": "string"
+          },
+          "i18n": {
+            "$ref": "#/components/schemas/I18nResponse"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "PortCompanyResponse": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "ref": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "resolved": {
+                "type": "boolean"
+              }
+            },
+            "required": ["id", "ref", "name", "resolved"]
+          },
+          "facilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaLinkResponse"
+            }
+          }
+        }
+      },
+      "CheckpointLinkResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CheckpointResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "AreaResponse": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaLinkResponse"
+            }
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["none", "in", "out"]
+          },
+          "automaticVehicle": {
+            "type": "boolean"
+          },
+          "allow": {
+            "type": "boolean"
+          },
+          "perimeter": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "AreaResponse",
+          "direction",
+          "automaticVehicle",
+          "allow"
+        ]
+      },
+      "AreaLinkResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "SecurityConfirmationsResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "deactivatedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "rank": {
+            "type": "integer"
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentResponse"
+          }
+        },
+        "required": ["id", "title", "createdAt", "rank"]
+      },
+      "I18nResponse": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Object containing translations, e.g. {en: a translation, no: en oversettelse}"
+      },
+      "DocumentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "href": {
+            "type": "string",
+            "format": "uri"
+          },
+          "mediatype": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "resolved": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "resolved"]
+      },
+      "IntegrationsResponse": {
+        "type": "object",
+        "properties": {
+          "salto": {
+            "type": "boolean"
+          },
+          "stanley": {
+            "type": "boolean"
+          },
+          "visy": {
+            "type": "boolean"
+          },
+          "westec": {
+            "type": "boolean"
+          },
+          "openpath": {
+            "type": "boolean"
+          },
+          "vehicles": {
+            "type": "boolean"
+          },
+          "ava": {
+            "type": "boolean"
+          },
+          "bewator": {
+            "type": "boolean"
+          },
+          "stripe": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "href",
+          "mediatype",
+          "category",
+          "filename",
+          "resolved"
+        ]
+      },
+      "SecurityCheckResultsResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "number"
+          }
+        }
+      },
+      "AreaResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "securityLevel": {
+            "type": "integer"
+          },
+          "openinHours": {
+            "type": "object",
+            "properties": {
+              "opening": {
+                "type": "string"
+              },
+              "closing": {
+                "type": "string"
+              }
+            }
+          },
+          "checkLists": {
+            "$ref": "#/components/schemas/ChecklistsResponse"
+          },
+          "targets": {
+            "type": "number"
+          },
+          "flags": {
+            "type": "number"
+          },
+          "asset": {
+            "type": "number"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentResponse"
+            }
+          },
+          "data": {
+            "type": "object",
+            "description": "Arbitrary json object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "securityLevel",
+          "checklists",
+          "flags",
+          "data"
+        ]
+      },
+      "ChecklistsResponse": {
+        "type": "object",
+        "properties": {
+          "vehicle": {
+            "$ref": "#/components/schemas/ChecklistResponse"
+          },
+          "person": {
+            "$ref": "#/components/schemas/ChecklistResponse"
+          },
+          "facility": {
+            "$ref": "#/components/schemas/ChecklistResponse"
+          },
+          "quay": {
+            "$ref": "#/components/schemas/ChecklistResponse"
+          },
+          "vessel": {
+            "$ref": "#/components/schemas/ChecklistResponse"
+          }
+        }
+      },
+      "ChecklistResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "minContraolled": {
+            "type": "integer"
+          }
+        },
+        "required": ["id", "name", "description"]
+      },
+      "VerifyVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "approved": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MaxDurationResponse": {
+        "type": "object",
+        "properties": {
+          "maxDuration": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "defaultDuration": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Maxiumum allowed duration for the permit, and the default duration used as autofill"
+      },
+      "MobileLoginRequestRequest": {
+        "type": "object",
+        "properties": {
+          "mobile": {
+            "type": "string"
+          }
+        }
+      },
+      "VerifyPortIdentityRequest": {
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string"
+          }
+        }
+      },
+      "FileUploadRequest": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "FileUploadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "href": {
+            "type": "string",
+            "format": "uri"
+          },
+          "mediatype": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          }
+        }
+      },
+      "NewVisitorApplicationRequest": {
+        "type": "object",
+        "properties": {
+          "visiting": {
+            "type": "object",
+            "properties": {
+              "facility": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "purpose": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "timeIn": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeOut": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["vessel", "company"]
+                  }
+                }
+              },
+              "visitHandler": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": ["facility", "purpose", "target"]
+          },
+          "visitor": {
+            "type": "object",
+            "properties": {
+              "company": {
+                "type": "string"
+              },
+              "data": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mobile": {
+                        "type": "string"
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["files"]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "company": {
+                        "type": "string",
+                        "example": "User Example Company AS"
+                      },
+                      "mobile": {
+                        "type": "string",
+                        "example": "+4712345678"
+                      },
+                      "portraitHref": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["id", "mobile", "portrait"]
+                  }
+                ]
+              }
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "securityConfirmations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "integrations": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "visiting",
+          "visitor",
+          "message",
+          "securityConfirmations",
+          "integrations"
+        ]
+      },
+      "OrbitaPassingResponse": {
+        "$ref": "#/components/schemas/OrbitaPassingRequest"
+      },
+      "PassingsResponse": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Passing"
+            }
+          },
+          "view": {
+            "type": "object",
+            "properties": {
+              "view": {
+                "type": "integer"
+              },
+              "next": {
+                "type": "integer"
+              },
+              "size": {
+                "type": "integer"
+              }
+            },
+            "required": ["view", "next", "size"]
+          }
+        }
+      },
+      "OrbitaPassingRequest": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "licensePlate": {
+            "type": "string"
+          },
+          "readerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": ["eventId", "timestamp", "licencePlate", "readerId"]
+      }
+    },
+    "parameters": {
+      "portId": {
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": "portId",
+        "in": "path",
+        "required": true,
+        "description": "Id of relevant port"
+      }
+    },
+    "requestBodies": {
+      "MobileLoginRequest": {
+        "description": "Payload fto issue a request to verify a port identity",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MobileLoginRequestRequest"
+            }
+          }
+        }
+      },
+      "VerifyMobileRequest": {
+        "description": "Payload for port identity to verify",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/VerifyPortIdentityRequest"
+            }
+          }
+        }
+      },
+      "NewVisitorApplicationRequest": {
+        "description": "Payload to create a new application for a user",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/NewVisitorApplicationRequest"
+            }
+          }
+        }
+      },
+      "OrbitaPassingRequest": {
+        "description": "Payload to create a new passing",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OrbitaPassingRequest"
+            }
+          }
+        }
+      },
+      "FileUploadRequest": {
+        "description": "Payload for uploading file",
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "$ref": "#/components/schemas/FileUploadRequest"
+            },
+            "encoding": {
+              "file": {
+                "contentType": "image/*"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
