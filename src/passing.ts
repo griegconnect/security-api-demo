@@ -1,26 +1,23 @@
 import { DateTime } from 'luxon'
 import { Configuration, PassingsApi } from './client'
 import { v4 as uuidv4 } from 'uuid';
-
-const TOKEN = ''
-const TENANT = 'SVG'
-const BASE_PATH = 'https://security.test.grieg.io/api'
+import config from '../config'
 
 const main = async () => {
-  const config = {
-    accessToken: TOKEN,
+  const apiConfig = {
+    accessToken: config.token,
   } as Configuration
   const apis = {
-    passingsApi: new PassingsApi(config, BASE_PATH),
+    passingsApi: new PassingsApi(apiConfig, config.apiPath),
   }
 
   try {
     //Get lastest passings
-    const passings = await apis.passingsApi.getPassings(TENANT)
+    const passings = await apis.passingsApi.getPassings(config.tenant)
     console.info("Fetched latest passings, got: ", passings.data.values?.length || 0)
 
     //Post the passing back again
-    const res = await apis.passingsApi.createPassing(TENANT, {
+    const res = await apis.passingsApi.createPassing(config.tenant, {
       timestamp: DateTime.now().toISO(),
       licensePlate: 'JD1234',
       eventId: uuidv4(),

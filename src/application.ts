@@ -10,10 +10,8 @@ import {
 import prompts from 'prompts'
 import fs from 'fs'
 import { PhoneNumberUtil } from 'google-libphonenumber'
+import config from "../config"
 
-const TOKEN = ''
-const TENANT = 'SVG'
-const BASE_PATH = 'https://security.test.grieg.io/api'
 const IMAGE = './portrait.jpeg'
 
 const phoneUtil = PhoneNumberUtil.getInstance()
@@ -27,19 +25,19 @@ const validatePhone = (mobile: string) => {
 }
 
 const main = async () => {
-  const config = {
-    accessToken: TOKEN,
+  const apiConfig = {
+    accessToken: config.token,
   } as Configuration
   const apis = {
-    portApi: new PortApi(config, BASE_PATH),
-    identityApi: new IdentityApi(config, BASE_PATH),
-    permitsApi: new PermitsApi(config, BASE_PATH),
-    applicationsApi: new ApplicationApi(config, BASE_PATH),
+    portApi: new PortApi(apiConfig, config.apiPath),
+    identityApi: new IdentityApi(apiConfig, config.apiPath),
+    permitsApi: new PermitsApi(apiConfig, config.apiPath),
+    applicationsApi: new ApplicationApi(apiConfig, config.apiPath),
   }
 
   try {
     //Get port details
-    const portDetails = await apis.portApi.getPortDetails(TENANT)
+    const portDetails = await apis.portApi.getPortDetails(config.tenant)
 
     //Enter mobile number in CLI
     const mobileNumber = await prompts({
@@ -49,7 +47,7 @@ const main = async () => {
         validate: value => validatePhone(value) ? true : 'Invalid phone number'
     }).then(r => r.mobile)
 
-    // await apis.identityApi.issueMobileLoginRequest(TENANT, {mobile: "+4791124647"})
+    // await apis.identityApi.issueMobileLoginRequest(config.tenant, {mobile: "+4791124647"})
 
     //Enter PIN code from SMS in CLI
     const pincode = await prompts({
@@ -58,14 +56,14 @@ const main = async () => {
         message: 'Enter PIN code from SMS:'
     }).then(r => r.pin)
 
-    await apis.identityApi.verifyMobile(TENANT, {pin: pincode})
+    await apis.identityApi.verifyMobile(config.tenant, {pin: pincode})
     .catch(e => {throw new Error('Failed to verify mobile number')})
 
     //Upload image
     const data = fs.readFileSync(IMAGE)
     const file = new File([data], 'portrait.jpeg', { type: 'image/jpeg' })
 
-    const fileDetails = await apis.portApi.uploadFile(TENANT, 'portrait', file)
+    const fileDetails = await apis.portApi.uploadFile(config.tenant, 'portrait', file)
 
     //Set arrival time
     const timeIn = DateTime.now().toISO()
@@ -77,7 +75,7 @@ const main = async () => {
     const facility = portDetails.data.areas && portDetails.data.areas[0].id
 
     //Get max duration
-    const maxDuration = await apis.permitsApi.getMaxDuration(TENANT, timeIn, target?.company?.id, purpose, facility)
+    const maxDuration = await apis.permitsApi.getMaxDuration(config.tenant, timeIn, target?.company?.id, purpose, facility)
 
     if (!maxDuration) throw new Error('Failed to get max duration')
     if (!purpose) throw new Error('Failed to get purpose')
@@ -85,7 +83,7 @@ const main = async () => {
     if (!facility) throw new Error('Failed to get facility')
 
     //Create application
-    const application = await apis.applicationsApi.createApplication(TENANT, {
+    const application = await apis.applicationsApi.createApplication(config.tenant, {
       visitor: {
         company: 'Test Company',
         data:{
@@ -112,7 +110,7 @@ const main = async () => {
 
     //Get application status
     if (application.data.id) {
-      const status = await apis.applicationsApi.getApplicationStatus(TENANT, application.data.id)
+      const status = await apis.applicationsApi.getApplicationStatus(config.tenant, application.data.id)
       console.log('Last status was ', status.data.status)
     } else {
       console.error('Failed to create application')
