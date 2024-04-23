@@ -991,7 +991,7 @@ export interface PortDetails {
      * @type {Array<PurposeResponse>}
      * @memberof PortDetails
      */
-    'purpose'?: Array<PurposeResponse>;
+    'purposes'?: Array<PurposeResponse>;
     /**
      * 
      * @type {Array<PortCompanyResponse>}
@@ -1164,7 +1164,13 @@ export interface VerifyPortIdentityRequest {
      * @type {string}
      * @memberof VerifyPortIdentityRequest
      */
-    'pin'?: string;
+    'code'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof VerifyPortIdentityRequest
+     */
+    'mobile'?: string;
 }
 /**
  * 

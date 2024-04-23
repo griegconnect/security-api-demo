@@ -1,5 +1,5 @@
 {
-  "name": "orbita-demo",
+  "name": "security-api-demo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,15 +12,20 @@
   "devDependencies": {
     "@types/google-libphonenumber": "^7.4.30",
     "@types/luxon": "^3.4.2",
+    "@types/node": "^20.12.7",
     "@types/prompts": "^2.4.9",
+    "@types/simple-oauth2": "^5.0.7",
     "@types/uuid": "^9.0.8",
     "ts-node": "^10.9.2"
   },
   "dependencies": {
+    "auth0": "^4.3.1",
     "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
     "google-libphonenumber": "^3.2.34",
     "luxon": "^3.4.4",
     "prompts": "^2.4.2",
+    "simple-oauth2": "^5.0.0",
     "uuid": "^9.0.1"
   }
 }

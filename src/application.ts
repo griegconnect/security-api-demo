@@ -11,6 +11,7 @@ import prompts from 'prompts'
 import fs from 'fs'
 import { PhoneNumberUtil } from 'google-libphonenumber'
 import config from "../config"
+import { ClientCredentials } from 'simple-oauth2';
 
 const IMAGE = './portrait.jpeg'
 
@@ -25,9 +26,16 @@ const validatePhone = (mobile: string) => {
 }
 
 const main = async () => {
+  const client = new ClientCredentials(config.oauth);
+
+  const credentials = await client.getToken({
+    audience: config.oauthAudience
+  })
+
   const apiConfig = {
-    accessToken: config.token,
+    accessToken: credentials.token.access_token,
   } as Configuration
+
   const apis = {
     portApi: new PortApi(apiConfig, config.apiPath),
     identityApi: new IdentityApi(apiConfig, config.apiPath),
@@ -39,24 +47,24 @@ const main = async () => {
     //Get port details
     const portDetails = await apis.portApi.getPortDetails(config.tenant)
 
-    //Enter mobile number in CLI
-    const mobileNumber = await prompts({
+    // //Enter mobile number in CLI
+    const mobile = await prompts({
         type: 'text',
         name: 'mobile',
         message: 'Enter mobile number:',
         validate: value => validatePhone(value) ? true : 'Invalid phone number'
     }).then(r => r.mobile)
 
-    // await apis.identityApi.issueMobileLoginRequest(config.tenant, {mobile: "+4791124647"})
+    await apis.identityApi.issueMobileLoginRequest(config.tenant, {mobile})
 
-    //Enter PIN code from SMS in CLI
-    const pincode = await prompts({
+    // //Enter PIN code from SMS in CLI
+    const code = await prompts({
         type: 'number',
         name: 'pin',
         message: 'Enter PIN code from SMS:'
     }).then(r => r.pin)
 
-    await apis.identityApi.verifyMobile(config.tenant, {pin: pincode})
+    await apis.identityApi.verifyMobile(config.tenant, {code, mobile})
     .catch(e => {throw new Error('Failed to verify mobile number')})
 
     //Upload image
@@ -68,7 +76,7 @@ const main = async () => {
     //Set arrival time
     const timeIn = DateTime.now().toISO()
     // Pick purpose
-    const purpose = portDetails.data.purpose && portDetails.data.purpose[0].id
+    const purpose = portDetails.data.purposes && portDetails.data.purposes[0].id
     // Pick target
     const target = portDetails.data.port_companies && portDetails.data.port_companies[0]
     // Pick facility
@@ -87,7 +95,7 @@ const main = async () => {
       visitor: {
         company: 'Test Company',
         data:{
-          mobile: mobileNumber,
+          mobile: "mobile",
           files: [fileDetails.data.id],
         }
       },

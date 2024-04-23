@@ -2,13 +2,18 @@ import { DateTime } from 'luxon'
 import { Configuration, PassingsApi } from './client'
 import { v4 as uuidv4 } from 'uuid';
 import config from '../config'
+import { ClientCredentials } from 'simple-oauth2';
 
 const main = async () => {
-  const apiConfig = {
-    accessToken: config.token,
-  } as Configuration
+  const client = new ClientCredentials(config.oauth);
+
+  const credentials = await client.getToken({
+    audience: config.oauthAudience
+  })
   const apis = {
-    passingsApi: new PassingsApi(apiConfig, config.apiPath),
+    passingsApi: new PassingsApi({
+      accessToken: credentials.token.access_token,
+    } as Configuration, config.apiPath),
   }
 
   try {

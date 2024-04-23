@@ -550,7 +550,7 @@
               "$ref": "#/components/schemas/CheckpointResponse"
             }
           },
-          "purpose": {
+          "purposes": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PurposeResponse"
@@ -969,7 +969,10 @@
       "VerifyPortIdentityRequest": {
         "type": "object",
         "properties": {
-          "pin": {
+          "code": {
+            "type": "string"
+          },
+          "mobile": {
             "type": "string"
           }
         }
